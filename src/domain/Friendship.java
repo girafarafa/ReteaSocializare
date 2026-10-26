@@ -1,28 +1,26 @@
 package domain;
 import java.util.Objects;
+import java.time.LocalDateTime;
 public class Friendship extends Entity<Long>{
-    private User firstFriend;
-    private User secondFriend;
+    private  final User firstFriend;
+    private final User secondFriend;
+    private final LocalDateTime FriendsFrom;
 
-    public Friendship(User firstFriend, User secondFriend) {
+    public Friendship(User firstFriend, User secondFriend, LocalDateTime FriendsFrom) {
         this.firstFriend = firstFriend;
         this.secondFriend = secondFriend;
+        this.FriendsFrom = FriendsFrom;
+    }
+
+    public Friendship(User firstFriend, User secondFriend) {
+        this(firstFriend, secondFriend, LocalDateTime.now());
     }
 
     public User getFirstFriend() {
         return firstFriend;
     }
-    public void setFirstFriend(User firstFriend) {
-        this.firstFriend = firstFriend;
-    }
-
-    public User getSecondFriend() {
-        return secondFriend;
-    }
-    public void setSecondFriend(User secondFriend) {
-        this.secondFriend = secondFriend;
-    }
-
+    public User getSecondFriend() {return secondFriend;}
+    public LocalDateTime getFriendsFrom() { return FriendsFrom; }
 
     //functie din clasa Object
     //compara ref de memorie, daca ambele var indica exact spre aceeasi loc
@@ -49,6 +47,7 @@ public class Friendship extends Entity<Long>{
     public String toString() {
         return "Friendship ID: " + getID() +
                 " | Friend 1: " + firstFriend.getFirstName() + " " + firstFriend.getLastName() + " (ID: " + firstFriend.getID() + ")" +
-                " | Friend 2: " + secondFriend.getFirstName() + " " + secondFriend.getLastName() + " (ID: " + secondFriend.getID() + ")";
+                " | Friend 2: " + secondFriend.getFirstName() + " " + secondFriend.getLastName() + " (ID: " + secondFriend.getID() + ")"
+                + " | Friends From: " + FriendsFrom;
     }
 }

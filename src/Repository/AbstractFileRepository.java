@@ -7,6 +7,7 @@ import domain.Validation.Validator;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.time.format.DateTimeParseException;
 
 public abstract class AbstractFileRepository<ID, E extends Entity<ID>> extends InMemoryRepository<ID,E>{
     private final String fileName;
@@ -19,23 +20,29 @@ public abstract class AbstractFileRepository<ID, E extends Entity<ID>> extends I
     protected abstract E extractEntity(List<String> attributes);
     protected abstract String createEntityAsString(E entity);
 
-    private void loadData(){
+    private void loadData() {
         File file = new File(fileName);
-        if(!file.exists()){
-            return;
+        if (!file.exists()) {
+            return; // Fișierul nu există încă; repository-ul rămâne gol
         }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(fileName))){
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String line;
-            while((line=reader.readLine()) != null){
-                if(line.trim().isEmpty()) continue;
-
-                List<String> attributes = Arrays.asList(line.split(";"));
-                E entity = extractEntity(attributes);
-                super.save(entity);
+            int lineNumber = 0;
+            while ((line = br.readLine()) != null) {
+                lineNumber++;
+                if (line.trim().isEmpty()) continue;
+                try {
+                    E entity = extractEntity(Arrays.asList(line.split(";")));
+                    super.save(entity);
+                } catch (Exception e) {
+                    // Raportezi linia coruptă fără a opri aplicația
+                    System.err.println("Atenție: Linia " + lineNumber + " din " + fileName +
+                            " este coruptă și a fost ignorată. Motiv: " + e.getMessage());
+                }
             }
-        }catch (IOException e){
-            throw new RepositoryException("Error reading from file: " + e.getMessage());
+        } catch (IOException e) {
+            throw new RepositoryException("Eroare la citirea fișierului " + fileName, e);
         }
     }
 
@@ -49,6 +56,10 @@ public abstract class AbstractFileRepository<ID, E extends Entity<ID>> extends I
             }
         } catch (IOException e){
             throw new RepositoryException("Error writing to file: " + e.getMessage());
+        }catch (DateTimeParseException e) {
+            throw new RepositoryException("Format dată invalid în fișier: " + e.getMessage(), e);
+        } catch (NumberFormatException e) {
+            throw new RepositoryException("Format ID invalid în fișier: " + e.getMessage(), e);
         }
     }
 

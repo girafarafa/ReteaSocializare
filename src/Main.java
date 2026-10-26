@@ -7,6 +7,7 @@ import Repository.FriendshipFileRepository;
 import Repository.InMemoryRepository;
 import Repository.Repository;
 import Repository.UserFileRepository;
+import Repository.RepositoryFactory;
 import Service.ComunityService;
 import Service.FriendshipService;
 import Service.UserService;
@@ -17,18 +18,12 @@ public class Main {
         Validator<User> userValidator = new UserValidator();
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
 
-        Repository<Long, User> userRepository;
-        Repository<Long, Friendship> friendshipRepository;
+        // Obtinem fabrica
+        RepositoryFactory factory = RepositoryFactory.getInstance();
 
-        String storageType = "memory";
-
-        if (storageType.equals("file")) {
-            userRepository = new UserFileRepository(userValidator, "users.txt");
-            friendshipRepository = new FriendshipFileRepository(friendshipValidator, "friendships.txt");
-        } else {
-            userRepository = new InMemoryRepository<>(userValidator);
-            friendshipRepository = new InMemoryRepository<>(friendshipValidator);
-        }
+        // Main NU MAI CUNOAȘTE clasele concrete! (nu există new UserFileRepository)
+        Repository<Long, User> userRepository = factory.createUserRepository(userValidator);
+        Repository<Long, Friendship> friendshipRepository = factory.createFriendshipRepository(friendshipValidator);
 
         UserService userService = new UserService(userRepository, friendshipRepository);
         FriendshipService friendshipService = new FriendshipService(userRepository, friendshipRepository);

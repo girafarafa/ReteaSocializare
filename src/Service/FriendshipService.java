@@ -5,6 +5,8 @@ import domain.Exceptions.ServiceException;
 import domain.Friendship;
 import domain.User;
 
+import java.time.LocalDateTime;
+
 public class FriendshipService {
     private final Repository<Long, User> userRepository;
     private final Repository<Long, Friendship> friendshipRepository;
@@ -35,7 +37,7 @@ public class FriendshipService {
             throw new ServiceException("User with ID" + idUser2 + "not found");
         }
 
-        Friendship newfriendship=new Friendship(user1,user2);
+        Friendship newfriendship=new Friendship(user1,user2, LocalDateTime.now());
 
         //verific daca prietenia exista deja
         for (Friendship f:friendshipRepository.findAll()) {
