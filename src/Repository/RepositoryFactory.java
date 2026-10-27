@@ -22,13 +22,13 @@ public class RepositoryFactory {
     private void loadProperties() {
         try (InputStream input = getClass().getClassLoader().getResourceAsStream("config.properties")) {
             if (input == null) {
-                throw new RuntimeException("Fișierul config.properties nu a fost găsit!");
+                throw new RuntimeException("Fisierul config.properties nu a fost gasit!");
             }
             properties.load(input);
 
             String typeStr = properties.getProperty("repository.type");
             if (typeStr == null) {
-                throw new IllegalArgumentException("Proprietatea repository.type lipsește din config.properties!");
+                throw new IllegalArgumentException("Proprietatea repository.type lipseste din config.properties!");
             }
 
             try {
@@ -38,7 +38,7 @@ public class RepositoryFactory {
             }
 
         } catch (Exception e) {
-            throw new RuntimeException("Eroare la încărcarea fișierului de configurare: " + e.getMessage(), e);
+            throw new RuntimeException("Eroare la incarcarea fisierului de configurare: " + e.getMessage(), e);
         }
     }
 
