@@ -8,6 +8,13 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 import java.time.format.DateTimeParseException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public abstract class AbstractFileRepository<ID, E extends Entity<ID>> extends InMemoryRepository<ID,E>{
     private final String fileName;
@@ -21,45 +28,39 @@ public abstract class AbstractFileRepository<ID, E extends Entity<ID>> extends I
     protected abstract String createEntityAsString(E entity);
 
     private void loadData() {
-        File file = new File(fileName);
-        if (!file.exists()) {
-            return; // Fișierul nu există încă; repository-ul rămâne gol
+        Path path = Paths.get(fileName);
+        if (!Files.exists(path)) {
+            return;
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String line;
-            int lineNumber = 0;
-            while ((line = br.readLine()) != null) {
-                lineNumber++;
-                if (line.trim().isEmpty()) continue;
-                try {
-                    E entity = extractEntity(Arrays.asList(line.split(";")));
-                    super.save(entity);
-                } catch (Exception e) {
-                    // Raportezi linia coruptă fără a opri aplicația
-                    System.err.println("Atenție: Linia " + lineNumber + " din " + fileName +
-                            " este coruptă și a fost ignorată. Motiv: " + e.getMessage());
-                }
-            }
+        try (Stream<String> lines = Files.lines(path)) {
+            lines.filter(line -> !line.trim().isEmpty())
+                    .forEach(line -> {
+                        try {
+                            // Transformăm linia în List<String> folosind separatorul din Lab 3 (ex: ";" sau ",")
+                            List<String> attributes = Arrays.asList(line.split(";"));
+                            E entity = extractEntity(attributes);
+                            super.save(entity);
+                        } catch (Exception e) {
+                            System.err.println("Warning: Corrupted line skipped -> " + line + " (" + e.getMessage() + ")");
+                        }
+                    });
         } catch (IOException e) {
-            throw new RepositoryException("Eroare la citirea fișierului " + fileName, e);
+            throw new RepositoryException("Error reading file: " + fileName, e);
         }
     }
 
 
     private void WriteData(){
-        try (BufferedWriter writer= new BufferedWriter(new FileWriter(fileName))){
-            for(E entity : super.findAll()){
-                String entityAsString = createEntityAsString(entity);
-                writer.write(entityAsString);
-                writer.newLine();
-            }
-        } catch (IOException e){
-            throw new RepositoryException("Error writing to file: " + e.getMessage());
-        }catch (DateTimeParseException e) {
-            throw new RepositoryException("Format dată invalid în fișier: " + e.getMessage(), e);
-        } catch (NumberFormatException e) {
-            throw new RepositoryException("Format ID invalid în fișier: " + e.getMessage(), e);
+        Path path = Paths.get(fileName);
+        List<String> lines = StreamSupport.stream(findAll().spliterator(), false)
+                .map(this::createEntityAsString)
+                .collect(Collectors.toList());
+
+        try {
+            Files.write(path, lines);
+        } catch (IOException e) {
+            throw new RepositoryException("Error writing file: " + fileName, e);
         }
     }
 
