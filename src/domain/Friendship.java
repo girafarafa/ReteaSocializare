@@ -1,4 +1,5 @@
 package domain;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.time.LocalDateTime;
 public class Friendship extends Entity<Long>{
@@ -45,9 +46,11 @@ public class Friendship extends Entity<Long>{
     //o suprascriu pt a afisa informatiile utile in consola
     @Override
     public String toString() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        String formattedDate = (getFriendsFrom() != null) ? getFriendsFrom().format(formatter) : "N/A";
         return "Friendship ID: " + getID() +
                 " | Friend 1: " + firstFriend.getFirstName() + " " + firstFriend.getLastName() + " (ID: " + firstFriend.getID() + ")" +
                 " | Friend 2: " + secondFriend.getFirstName() + " " + secondFriend.getLastName() + " (ID: " + secondFriend.getID() + ")"
-                + " | Friends From: " + FriendsFrom;
+                + " | Friends From: " + formattedDate;
     }
 }

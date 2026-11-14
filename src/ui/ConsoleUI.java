@@ -34,6 +34,8 @@ public class ConsoleUI {
             System.out.println("6. View Friendships");
             System.out.println("7. Numbers of Comunities");
             System.out.println("8. Most Sociable Comunity");
+            System.out.println("9. Find User by ID");
+            System.out.println("10. View Friends of a User");
             System.out.println("0. Exit");
             System.out.print("Choose option: ");
 
@@ -47,6 +49,8 @@ public class ConsoleUI {
                 case "6" -> displayAllFriendships();
                 case "7" -> displayNumberOfComunities();
                 case "8" -> displayMostSociableComunity();
+                case "9" -> findUserById();
+                case "10" -> displayFriendsOfUser();
                 case "0"-> {
                     System.out.println("Exiting...");
                     return;
@@ -166,6 +170,37 @@ public class ConsoleUI {
         for(Long userId:comunityUserIds){
             User user=userService.getAllUsers().iterator().next();
             System.out.println("User ID: " + userId);
+        }
+    }
+
+    private void findUserById() {
+        System.out.print("Enter User ID to search: ");
+        try {
+            Long id = Long.parseLong(scanner.nextLine());
+            userService.findUser(id).ifPresentOrElse(
+                    System.out::println,
+                    () -> System.out.println("Utilizatorul nu a fost găsit!")
+            );
+        } catch (NumberFormatException e) {
+            System.out.println("UI error: ID must be a valid number!");
+        }
+    }
+
+    private void displayFriendsOfUser() {
+        System.out.print("Enter User ID: ");
+        try {
+            Long id = Long.parseLong(scanner.nextLine());
+            List<User> friends = friendshipService.getFriendsOfUser(id);
+            if (friends.isEmpty()) {
+                System.out.println("This user has no friends.");
+            } else {
+                System.out.println("--- FRIENDS ---");
+                friends.forEach(System.out::println);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("UI error: ID must be a valid number!");
+        } catch (ServiceException ex) {
+            System.out.println("Error: " + ex.getMessage());
         }
     }
 }
