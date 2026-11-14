@@ -6,6 +6,11 @@ import domain.Friendship;
 import domain.User;
 
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class FriendshipService {
     private final Repository<Long, User> userRepository;
@@ -17,33 +22,28 @@ public class FriendshipService {
     }
 
     private Long getNextID() {
-        Long maxID=0L;
-        for (Friendship f : friendshipRepository.findAll()) {
-            if (f.getID() > maxID) {
-                maxID = f.getID();
-            }
-        }
-        return maxID + 1;
+        return StreamSupport.stream(userRepository.findAll().spliterator(), false)
+                .map(User::getID)
+                .max(Long::compareTo)
+                .orElse(0L)+1;
+
     }
 
     public void addFriendship(Long idUser1, Long idUser2) {
-        User user1=userRepository.find(idUser1);
-        User user2=userRepository.find(idUser2);
+        User user1 = Optional.ofNullable(userRepository.find(idUser1))
+                .orElseThrow(() -> new ServiceException("User with ID " + idUser1 + " not found"));
 
-        if (user1==null) {
-            throw new ServiceException("User with ID" + idUser1 + "not found");
-        }
-        if (user2==null) {
-            throw new ServiceException("User with ID" + idUser2 + "not found");
-        }
+        User user2 = Optional.ofNullable(userRepository.find(idUser2))
+                .orElseThrow(() -> new ServiceException("User with ID " + idUser2 + " not found"));
 
         Friendship newfriendship=new Friendship(user1,user2, LocalDateTime.now());
 
         //verific daca prietenia exista deja
-        for (Friendship f:friendshipRepository.findAll()) {
-            if(f.equals(newfriendship)) {
-                throw new ServiceException("Friendship already exists");
-            }
+        boolean exists=StreamSupport.stream(friendshipRepository.findAll().spliterator(),false)
+                        .anyMatch(newfriendship::equals);
+
+        if (exists) {
+            throw new ServiceException("Friendship already exists");
         }
 
         newfriendship.setID(getNextID());
@@ -51,19 +51,26 @@ public class FriendshipService {
     }
 
     public void removeFriendship(Long idUser1, Long idUser2) {
-        Long friendshipID=null;
-        for (Friendship f:friendshipRepository.findAll()) {
-            if ((f.getFirstFriend().getID().equals(idUser1) && f.getSecondFriend().getID().equals(idUser2)) ||
-                    (f.getFirstFriend().getID().equals(idUser2) && f.getSecondFriend().getID().equals(idUser1))) {
-                friendshipID= f.getID();
-                break;
-            }
-        }
+        Long friendshipID = StreamSupport.stream(friendshipRepository.findAll().spliterator(), false)
+                .filter(f -> (f.getFirstFriend().getID().equals(idUser1) && f.getSecondFriend().getID().equals(idUser2)) ||
+                        (f.getFirstFriend().getID().equals(idUser2) && f.getSecondFriend().getID().equals(idUser1)))
+                .map(Friendship::getID)
+                .findFirst()
+                .orElseThrow(() -> new ServiceException("Friendship between users " + idUser1 + " and " + idUser2 + " not found"));
 
-        if (friendshipID==null) {
-            throw new ServiceException("User with ID" + idUser1 + "not found");
-        }
         friendshipRepository.delete(friendshipID);
+    }
+
+    public List<User> getFriendsOfUser(Long userId) {
+        User user = Optional.ofNullable(userRepository.find(userId))
+                .orElseThrow(() -> new ServiceException("User with ID " + userId + " not found"));
+
+        return StreamSupport.stream(friendshipRepository.findAll().spliterator(), false)
+                .filter(f -> f.getFirstFriend().getID().equals(userId) || f.getSecondFriend().getID().equals(userId))
+                .map(f -> f.getFirstFriend().getID().equals(userId) ? f.getSecondFriend() : f.getFirstFriend())
+                .distinct()
+                .sorted(Comparator.comparing(User::getLastName).thenComparing(User::getFirstName))
+                .collect(Collectors.toList());
     }
 
     public Iterable<Friendship> getAllFriendships() {
