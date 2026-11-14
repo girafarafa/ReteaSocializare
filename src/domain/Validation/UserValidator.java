@@ -4,6 +4,12 @@ import domain.User;
 
 public class UserValidator implements Validator<User> {
     @Override
+    /**
+     * Validates a User entity
+     * @param entity the User entity to be validated
+     * @throws ValidationException if any validation rule is violated, accumulating all error messages
+     */
+
     public void validate(User entity) throws ValidationException {
         String errors="";
 
