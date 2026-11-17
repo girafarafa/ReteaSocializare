@@ -5,6 +5,7 @@ import domain.Exceptions.RepositoryException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @param <ID> the type of the entity identifier
@@ -33,11 +34,11 @@ public class InMemoryRepository<ID, E extends Entity<ID>> implements Repository<
      * @throws IllegalArgumentException if the provided ID is null
      */
     @Override
-    public E find(ID id) {
+    public Optional<E> find(ID id) {
         if(id==null) {
             throw new IllegalArgumentException("ID cannot be null!");
         }
-        return entities.get(id);
+        return Optional.ofNullable(entities.get(id));
     }
 
     /**

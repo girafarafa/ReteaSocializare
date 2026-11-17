@@ -30,10 +30,10 @@ public class FriendshipService {
     }
 
     public void addFriendship(Long idUser1, Long idUser2) {
-        User user1 = Optional.ofNullable(userRepository.find(idUser1))
+        User user1 = userRepository.find(idUser1)
                 .orElseThrow(() -> new ServiceException("User with ID " + idUser1 + " not found"));
 
-        User user2 = Optional.ofNullable(userRepository.find(idUser2))
+        User user2 = userRepository.find(idUser2)
                 .orElseThrow(() -> new ServiceException("User with ID " + idUser2 + " not found"));
 
         Friendship newfriendship=new Friendship(user1,user2, LocalDateTime.now());
@@ -62,7 +62,7 @@ public class FriendshipService {
     }
 
     public List<User> getFriendsOfUser(Long userId) {
-        User user = Optional.ofNullable(userRepository.find(userId))
+        User user = userRepository.find(userId)
                 .orElseThrow(() -> new ServiceException("User with ID " + userId + " not found"));
 
         return StreamSupport.stream(friendshipRepository.findAll().spliterator(), false)

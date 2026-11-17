@@ -50,6 +50,6 @@ public class UserService {
     }
 
     public Optional<User> findUser(Long id) {
-        return Optional.ofNullable(userRepository.find(id));
+        return userRepository.find(id);
     }
 }

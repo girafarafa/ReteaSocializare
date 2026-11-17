@@ -99,6 +99,7 @@ public class RepositoryFactory {
         if (creator == null) {
             throw new IllegalArgumentException("Unknown repository type: " + repositoryType);
         }
+        //aici se creeaza propriu zis repositoryul
         return creator.apply(validator);
     }
 
