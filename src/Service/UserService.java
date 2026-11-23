@@ -19,18 +19,20 @@ public class UserService {
         this.userRepository = userRepository;
         this.friendshipRepository = friendshipRepository;
     }
-    private Long getNextID(){
+
+    /*private Long getNextID(){
         return StreamSupport.stream(userRepository.findAll().spliterator(), false)
                 .map(User::getID)
                 .max(Long::compareTo)
                 .orElse(0L) + 1;
+    }*/
+
+    public User addUser(String firstName, String lastName, String email, String password) {
+        User user = new User(firstName, lastName, email, password);
+        userRepository.save(user);
+        return user;
     }
 
-    public void addUser(String firstName, String lastName, String email, String password) {
-        User user = new User(firstName, lastName, email, password);
-        user.setID(getNextID());
-        userRepository.save(user);
-    }
 
     public User deleteUser(long id){
         User deletedUser = Optional.ofNullable(userRepository.delete(id))

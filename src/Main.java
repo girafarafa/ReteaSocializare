@@ -33,9 +33,17 @@ public class Main {
             }
         };
 
+        /*Validator<User> startsWithAValidator = user -> {
+            if (user.getFirstName() != null && !user.getFirstName().isEmpty()) {
+                if (user.getFirstName().charAt(0) != 'A') {
+                    throw new ValidationException("First name must start with the letter 'A'!");
+                }
+            }4
+        };*/
+
         //am combinat cu andthen()
         Validator<User> combinedUserValidator = baseUserValidator.andThen(capitalLetterValidator);
-
+        //Validator<User> combinedUserValidator = baseUserValidator.andThen(startsWithAValidator);
         //am trimis validatorul combinat mai departe catre repository
         Validator<Friendship> friendshipValidator = new FriendshipValidator();
 

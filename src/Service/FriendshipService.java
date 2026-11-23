@@ -21,15 +21,7 @@ public class FriendshipService {
         this.friendshipRepository = friendshipRepository;
     }
 
-    private Long getNextID() {
-        return StreamSupport.stream(userRepository.findAll().spliterator(), false)
-                .map(User::getID)
-                .max(Long::compareTo)
-                .orElse(0L)+1;
-
-    }
-
-    public void addFriendship(Long idUser1, Long idUser2) {
+    public Friendship addFriendship(Long idUser1, Long idUser2) {
         User user1 = userRepository.find(idUser1)
                 .orElseThrow(() -> new ServiceException("User with ID " + idUser1 + " not found"));
 
@@ -45,9 +37,8 @@ public class FriendshipService {
         if (exists) {
             throw new ServiceException("Friendship already exists");
         }
-
-        newfriendship.setID(getNextID());
         friendshipRepository.save(newfriendship);
+        return newfriendship;
     }
 
     public void removeFriendship(Long idUser1, Long idUser2) {

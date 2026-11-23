@@ -1,30 +1,31 @@
 package ui;
 
 import Service.ComunityService;
-import Service.UserService;
 import Service.FriendshipService;
+import Service.UserService;
 import domain.Exceptions.RepositoryException;
 import domain.Exceptions.ServiceException;
-import domain.User;
 import domain.Friendship;
+import domain.User;
 import domain.Validation.ValidationException;
 
-import java.util.Scanner;
 import java.util.List;
+import java.util.Scanner;
 
 public class ConsoleUI {
     private final UserService userService;
     private final FriendshipService friendshipService;
-    private final Scanner scanner=new Scanner(System.in);
+    private final Scanner scanner = new Scanner(System.in);
     private final ComunityService comunityService;
 
-    public ConsoleUI(UserService userService, FriendshipService friendshipService, ComunityService comunityService) { // Constructor actualizat
+    public ConsoleUI(UserService userService, FriendshipService friendshipService, ComunityService comunityService) {
         this.userService = userService;
         this.friendshipService = friendshipService;
         this.comunityService = comunityService;
     }
-    public void start(){
-        while(true) {
+
+    public void start() {
+        while (true) {
             System.out.println("\n--- MENU ---");
             System.out.println("1. Add User");
             System.out.println("2. Print All Users");
@@ -51,17 +52,16 @@ public class ConsoleUI {
                 case "8" -> displayMostSociableComunity();
                 case "9" -> findUserById();
                 case "10" -> displayFriendsOfUser();
-                case "0"-> {
+                case "0" -> {
                     System.out.println("Exiting...");
                     return;
                 }
                 default -> System.out.println("Invalid option!");
-
             }
         }
     }
 
-    private void addUser(){
+    private void addUser() {
         System.out.print("First Name: ");
         String firstName = scanner.nextLine();
         System.out.print("Last Name: ");
@@ -70,32 +70,32 @@ public class ConsoleUI {
         String email = scanner.nextLine();
         System.out.print("Password: ");
         String password = scanner.nextLine();
-        try{
-            userService.addUser(firstName, lastName, email, password);
-            System.out.println("User added successfully!");
-        }catch  (RepositoryException ex) {
-            System.out.println("Repository error: "+ex.getMessage());
+        try {
+            User savedUser = userService.addUser(firstName, lastName, email, password);
+            System.out.println("User added successfully with ID: " + savedUser.getID());
+        } catch (RepositoryException ex) {
+            System.out.println("Repository error: " + ex.getMessage());
         } catch (ServiceException ex) {
-            System.out.println("Service error: "+ex.getMessage());
-        } catch(ValidationException ex){
-            System.out.println("Validation error: "+ex.getMessage());
-        }
-        catch  (NumberFormatException ex) {
-            System.out.println("UI error: You must enter only digits!");
+            System.out.println("Service error: " + ex.getMessage());
+        } catch (ValidationException ex) {
+            System.out.println("Validation error: " + ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Invalid input: " + ex.getMessage());
         }
     }
 
     private void displayAllUsers() {
         System.out.println("\n--- LIST OF USERS ---");
-        Iterable<User> users = userService.getAllUsers();
-
-        // Verificăm dacă există utilizatori în listă
-        if (!users.iterator().hasNext()) {
-            System.out.println("No users found.");
-            return;
+        try {
+            Iterable<User> users = userService.getAllUsers();
+            if (!users.iterator().hasNext()) {
+                System.out.println("No users found.");
+                return;
+            }
+            users.forEach(System.out::println);
+        } catch (RepositoryException ex) {
+            System.out.println("Repository error: " + ex.getMessage());
         }
-
-        users.forEach(System.out::println);
     }
 
     private void removeUser() {
@@ -106,7 +106,7 @@ public class ConsoleUI {
             System.out.println("User removed successfully: " + deletedUser);
         } catch (NumberFormatException ex) {
             System.out.println("UI error: ID must be a valid number!");
-        } catch (ServiceException | RepositoryException ex) {
+        } catch (ServiceException | RepositoryException | IllegalArgumentException ex) {
             System.out.println("Error: " + ex.getMessage());
         }
     }
@@ -122,7 +122,7 @@ public class ConsoleUI {
             System.out.println("Friendship added successfully!");
         } catch (NumberFormatException e) {
             System.out.println("UI error: IDs must be valid numbers!");
-        } catch (ValidationException | RepositoryException | ServiceException ex) {
+        } catch (ValidationException | RepositoryException | ServiceException | IllegalArgumentException ex) {
             System.out.println("Error: " + ex.getMessage());
         }
     }
@@ -138,38 +138,49 @@ public class ConsoleUI {
             System.out.println("Friendship removed successfully!");
         } catch (NumberFormatException e) {
             System.out.println("UI error: IDs must be valid numbers!");
-        } catch (RepositoryException | ServiceException ex) {
+        } catch (RepositoryException | ServiceException | IllegalArgumentException ex) {
             System.out.println("Error: " + ex.getMessage());
         }
     }
 
     private void displayAllFriendships() {
         System.out.println("\n--- LIST OF FRIENDSHIPS ---");
-        Iterable<Friendship> friendships = friendshipService.getAllFriendships();
-
-        if (!friendships.iterator().hasNext()) {
-            System.out.println("No friendships found.");
-            return;
+        try {
+            Iterable<Friendship> friendships = friendshipService.getAllFriendships();
+            if (!friendships.iterator().hasNext()) {
+                System.out.println("No friendships found.");
+                return;
+            }
+            friendships.forEach(System.out::println);
+        } catch (RepositoryException ex) {
+            System.out.println("Repository error: " + ex.getMessage());
         }
-
-        friendships.forEach(System.out::println);
     }
 
     private void displayNumberOfComunities() {
-        int count= comunityService.getNumberOfCommunities();
-        System.out.println("Number of comunities: "+count);
+        try {
+            int count = comunityService.getNumberOfCommunities();
+            System.out.println("Number of comunities: " + count);
+        } catch (RepositoryException ex) {
+            System.out.println("Repository error: " + ex.getMessage());
+        }
     }
 
     private void displayMostSociableComunity() {
-        List<Long> comunityUserIds=comunityService.getMostSociableCommunity();
-
-        if(comunityUserIds.isEmpty()){
-            System.out.println("No comunities found.");
-        }
-
-        for(Long userId:comunityUserIds){
-            User user=userService.getAllUsers().iterator().next();
-            System.out.println("User ID: " + userId);
+        try {
+            List<Long> comunityUserIds = comunityService.getMostSociableCommunity();
+            if (comunityUserIds.isEmpty()) {
+                System.out.println("No comunities found.");
+                return;
+            }
+            for (Long userId : comunityUserIds) {
+                userService.findUser(userId).ifPresentOrElse(
+                        user -> System.out.println("User ID: " + userId + " (" + user.getFirstName() + " " + user.getLastName() + ")"),
+                        () -> System.out.println("User ID: " + userId)
+                );
+            }
+        } catch (RepositoryException ex) {
+            System.out.println("Repository error: " + ex.getMessage());
         }
     }
 
@@ -183,6 +194,8 @@ public class ConsoleUI {
             );
         } catch (NumberFormatException e) {
             System.out.println("UI error: ID must be a valid number!");
+        } catch (RepositoryException | IllegalArgumentException ex) {
+            System.out.println("Error: " + ex.getMessage());
         }
     }
 
@@ -199,7 +212,7 @@ public class ConsoleUI {
             }
         } catch (NumberFormatException e) {
             System.out.println("UI error: ID must be a valid number!");
-        } catch (ServiceException ex) {
+        } catch (ServiceException | RepositoryException | IllegalArgumentException ex) {
             System.out.println("Error: " + ex.getMessage());
         }
     }
