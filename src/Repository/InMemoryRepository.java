@@ -65,6 +65,15 @@ public class InMemoryRepository<ID, E extends Entity<ID>> implements Repository<
             throw new IllegalArgumentException("Entity cannot be null!");
         }
         validator.validate(entity);
+
+        if (entity.getID() == null) {
+            long nextId = entities.keySet().stream()
+                    .filter(Long.class::isInstance)
+                    .mapToLong(id -> (Long) id)
+                    .max()
+                    .orElse(0L) + 1;
+            entity.setID((ID) Long.valueOf(nextId));
+        }
         if(entities.containsKey(entity.getID())) {
             return entity;
         }
