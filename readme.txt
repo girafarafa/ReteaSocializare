@@ -57,6 +57,12 @@ comunitate. La backtracking pentru cel mai lung drum trebuie sa marchez nodurile
 cand intru in recursivitate si sa le demarchez cand ma intorc, iar daca incercam sa fac 
 asta cu stream-uri iesea un cod foarte greu de citit si de inteles.
 
+4. Gestionarea stergerii prieteniilor la eliminarea unui utilizator
+Alegere implementata: ON DELETE CASCADE la nivel de baza de date (pe
+cheile straine id1 si id2 din tabela friendships care refera users(id)),
+completata de curatarea din UserService pentru compatibilitatea cu
+stocarea in memorie/fisiere.
+
 - ConsoleUI.start():
 Am lasat bucla while (true) pentru meniul din consola, pentru ca nu parcurge o colectie 
 de date, ci doar asteapta comenzi de la tastatura pana cand aleg optiunea 0 (Exit).
